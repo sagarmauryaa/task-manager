@@ -4,6 +4,10 @@ const completedSchema = z.boolean({
     message: 'Completed must be a boolean value (true or false)',
 });
 
+const priorityEnum = z.enum(['low', 'medium', 'high'], {
+    message: "Priority must be 'low', 'medium' or 'high'"
+});
+
 const taskBaseSchema = {
     title: z
         .string()
@@ -13,20 +17,16 @@ const taskBaseSchema = {
         .string()
         .trim()
         .min(1, 'Description is required'),
-    priority: z.enum(['low', 'medium', 'high'], {
-        message: "Priority must be 'low', 'medium' or 'high'"
-    }).default('low').optional(),
+    priority: priorityEnum.optional(),
     completed: completedSchema,
 };
 
-const prioritySchema = z.enum(['low', 'medium', 'high'], {
-    message: "Priority must be 'low', 'medium' or 'high'"
-}).default('low').optional();
+const prioritySchema = priorityEnum;
 
 const taskQueryBaseSchema = {
     completed: z.enum(['true', 'false'], {
         message: "completed must be 'true' or 'false'"
-    }).default('false').optional().transform((val) => val === 'true' ? true : false),
+    }).optional().transform((val) => (val === undefined ? undefined : val === 'true')),
     search: z.string({
         required_error: "search must be a string"
     }).optional().transform((val) => val?.toLowerCase()),
@@ -50,7 +50,8 @@ const taskQueryFilterSchema = z.object(taskQueryBaseSchema).partial().strict();
 const createTaskSchema = z
     .object({
         ...taskBaseSchema,
-        completed: completedSchema.default(false).optional(),
+        priority: priorityEnum.optional().default('low'),
+        completed: completedSchema.optional().default(false),
     })
     .strict();
 

@@ -12,11 +12,14 @@ const getDataService = async (params = {}) => {
     }
 
     if (completed !== undefined) {
-        filteredData = data.filter(task => task.completed === completed);
+        filteredData = filteredData.filter(task => task.completed === completed);
     }
 
     if (search) {
-        filteredData = filteredData.filter(task => task.title.toLowerCase().includes(search));
+        const normalizedSearch = search.toLowerCase();
+        filteredData = filteredData.filter(task =>
+            task.title.toLowerCase().includes(normalizedSearch)
+        );
     }
 
     if (priority) {
@@ -44,9 +47,9 @@ const addTaskService = async (newTask) => {
     const createdDate = new Date();
 
     const newTaskWithId = {
+        ...newTask,
         id: nextId,
         createdDate,
-        ...newTask,
     };
     data.push(newTaskWithId);
     await writeData(data);
@@ -64,10 +67,10 @@ const updateTaskByIdService = async (id, updatedTask) => {
     }
 
     data[index] = {
-        id: data[index].id,
-        updatedDate,
         ...data[index],
         ...updatedTask,
+        id: data[index].id,
+        updatedDate,
     };
     await writeData(data);
     return data[index];
